@@ -15,6 +15,7 @@ namespace CodeIgniter\Cache;
 
 use CodeIgniter\Cache\FactoriesCache\FileVarExportHandler;
 use PHPUnit\Framework\Attributes\Group;
+use ReflectionProperty;
 
 /**
  * @internal
@@ -26,5 +27,31 @@ final class FactoriesCacheFileVarExportHandlerTest extends AbstractFactoriesCach
     {
         $this->handler = new FileVarExportHandler();
         $this->cache   = new FactoriesCache($this->handler);
+    }
+
+    public function testSaveCreatesDirectoryWithCorrectPermissions(): void
+    {
+        $dir = WRITEPATH . 'cache_test_dir_' . uniqid('', true);
+
+        try {
+            $handler = new FileVarExportHandler();
+            $ref     = new ReflectionProperty(FileVarExportHandler::class, 'path');
+            $ref->setValue($handler, $dir);
+
+            $handler->save('test_key', ['data']);
+
+            $this->assertDirectoryExists($dir);
+
+            if (! is_windows()) {
+                $perms    = fileperms($dir) & 0777;
+                $expected = 0755 & ~umask();
+                $this->assertSame($expected, $perms);
+            }
+        } finally {
+            if (is_dir($dir)) {
+                array_map('unlink', glob("{$dir}/*") ?: []);
+                rmdir($dir);
+            }
+        }
     }
 }
