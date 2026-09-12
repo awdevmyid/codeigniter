@@ -69,7 +69,9 @@ abstract class CIUnitTestCase extends TestCase
      *
      * @var list<string> array of methods
      */
-    protected $tearDownMethods = [];
+    protected $tearDownMethods = [
+        'resetIsWindowsMock',
+    ];
 
     /**
      * Store of identified traits.
@@ -316,6 +318,16 @@ abstract class CIUnitTestCase extends TestCase
     protected function resetServices(bool $initAutoloader = true)
     {
         Services::reset($initAutoloader);
+    }
+
+    /**
+     * Resets the mocked is_windows() function back to default state.
+     */
+    protected function resetIsWindowsMock(): void
+    {
+        if (function_exists('is_windows')) {
+            is_windows(null);
+        }
     }
 
     /**
