@@ -49,7 +49,12 @@ final class FactoriesCacheFileVarExportHandlerTest extends AbstractFactoriesCach
             }
         } finally {
             if (is_dir($dir)) {
-                array_map('unlink', glob("{$dir}/*") ?: []);
+                $files = glob("{$dir}/*");
+
+                if ($files !== false) {
+                    array_map(unlink(...), $files);
+                }
+
                 rmdir($dir);
             }
         }
